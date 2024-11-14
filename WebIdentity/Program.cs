@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebIdentity.Data;
+using WebIdentity.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,15 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.SlidingExpiration = true;
     });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("SuperAdmin",
+        policy => policy.RequireRole("User", "Admin"));
+});
+
+builder.Services.AddScoped<ISeedUserRoleInitial,SeedUserRoleInitial>();
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -49,11 +59,33 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+await CriarPerfisUsuairioAsync(app);
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllerRoute(
+      name: "areas",
+      pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}"
+    );
+});
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+async Task CriarPerfisUsuairioAsync(WebApplication app)
+{
+    var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
+
+    using (var scope = scopedFactory.CreateScope())
+    {
+        var service = scope.ServiceProvider.GetService<ISeedUserRoleInitial>();
+        await service.SeendRoleAsync();
+        await service.SeendUserAsync();
+    }
+}
