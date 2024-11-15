@@ -1,0 +1,21 @@
+﻿@model IdentityRole
+
+<h3>Confirma a Exclusão desta Role ?</h3>
+<div>
+    <h4> Usuario</h4>
+    <hr/>
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(Model => Model.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(Model => Model.Name)
+        </dd>
+    </dl>
+
+    <form action="Delete">
+        <input type="hidden" asp-for="@Model.Id" />
+        <input type="submit" value="Delete" class="btn btn-danger" />
+        <a asp-action="Index">Retornar</a>
+    </form>
+</div>
